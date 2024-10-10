@@ -1,0 +1,105 @@
+import pygame
+import sys
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Pokémon Adventure Game")
+
+# Define colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+# Game variables
+current_scene = 'world'
+caught_pokemons = []
+wild_pokemon = None
+
+# Simple Pokémon class
+class Pokemon:
+    def __init__(self, name, color, hp, level):
+        self.name = name
+        self.color = color
+        self.hp = hp
+        self.level = level
+
+# Create wild Pokémon using shapes
+wild_pokemon_data = [
+    Pokemon("Pikachu", YELLOW, 20, 1),
+    Pokemon("Bulbasaur", GREEN, 25, 1),
+    Pokemon("Charmander", RED, 22, 1),
+]
+
+# Function to draw text
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, True, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+
+# Function to encounter a wild Pokémon
+def encounter_wild_pokemon():
+    return random.choice(wild_pokemon_data)
+
+# Game loop
+def game_loop():
+    global current_scene, wild_pokemon
+    clock = pygame.time.Clock()
+    font = pygame.font.Font(None, 36)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # Handle user input for scene changes
+            if event.type == pygame.KEYDOWN:
+                if current_scene == 'world':
+                    if event.key == pygame.K_SPACE:
+                        wild_pokemon = encounter_wild_pokemon()
+                        current_scene = 'battle'
+                elif current_scene == 'battle':
+                    if event.key == pygame.K_c:  # Catch Pokémon
+                        caught_pokemons.append(wild_pokemon)
+                        wild_pokemon = None
+                        current_scene = 'world'
+                    elif event.key == pygame.K_x:  # Flee
+                        wild_pokemon = None
+                        current_scene = 'world'
+
+        # Clear the screen
+        screen.fill(WHITE)
+
+        # Draw the current scene
+        if current_scene == 'world':
+            draw_text("Press SPACE to encounter a wild Pokémon!", font, BLACK, screen, 100, 100)
+            if caught_pokemons:
+                draw_text(f"Caught Pokémon: {len(caught_pokemons)}", font, GREEN, screen, 100, 150)
+        elif current_scene == 'battle':
+            draw_text(f"A wild {wild_pokemon.name} appeared!", font, BLACK, screen, 100, 100)
+            draw_text("Press C to catch or X to flee.", font, BLACK, screen, 100, 150)
+
+            # Draw wild Pokémon as shapes
+            if wild_pokemon.name == "Pikachu":
+                pygame.draw.circle(screen, YELLOW, (400, 300), 50)  # Pikachu as a yellow circle
+            elif wild_pokemon.name == "Bulbasaur":
+                pygame.draw.rect(screen, GREEN, (350, 250, 100, 100))  # Bulbasaur as a green square
+            elif wild_pokemon.name == "Charmander":
+                pygame.draw.polygon(screen, RED, [(400, 250), (450, 400), (350, 400)])  # Charmander as a red triangle
+
+        # Update the display
+        pygame.display.flip()
+        clock.tick(60)
+
+# Run the game
+if __name__ == '__main__':
+    game_loop()
